@@ -104,6 +104,7 @@ type RelayServers = Vec<String>;
 const CHECK_RELAY_TIMEOUT: u64 = 3_000;
 static ALWAYS_USE_RELAY: AtomicBool = AtomicBool::new(false);
 static MUST_LOGIN: AtomicBool = AtomicBool::new(false);
+static MUST_LOGIN_PEER: AtomicBool = AtomicBool::new(true);
 
 #[derive(Clone)]
 struct Inner {
@@ -223,9 +224,29 @@ impl RendezvousServer {
             MUST_LOGIN.store(true, Ordering::SeqCst);
         }
 
+        let must_login_peer = get_arg("must-login-peer");
+        log::debug!("must_login_peer={}", must_login_peer);
+        if must_login_peer.to_uppercase() == "N"
+            || (must_login_peer == ""
+                && std::env::var("MUST_LOGIN_PEER")
+                    .unwrap_or_default()
+                    .to_uppercase()
+                    == "N")
+        {
+            MUST_LOGIN_PEER.store(false, Ordering::SeqCst);
+        }
+
         log::info!(
             "MUST_LOGIN={}",
             if MUST_LOGIN.load(Ordering::SeqCst) {
+                "Y"
+            } else {
+                "N"
+            }
+        );
+        log::info!(
+            "MUST_LOGIN_PEER={}",
+            if MUST_LOGIN_PEER.load(Ordering::SeqCst) {
                 "Y"
             } else {
                 "N"
@@ -898,7 +919,8 @@ impl RendezvousServer {
             });
             return Ok((msg_out, None));
         }
-        // if secret is not empty check token by jwt
+        // Check token authentication for controller (控制端)
+        // The controller (A) is the one sending PunchHoleRequest
         if MUST_LOGIN.load(Ordering::SeqCst) {
             if ph.token.is_empty() {
                 let mut msg_out = RendezvousMessage::new();
@@ -1279,6 +1301,17 @@ impl RendezvousServer {
                     }
                 } else {
                     let _ = writeln!(res, "MUST_LOGIN: {:?}", MUST_LOGIN.load(Ordering::SeqCst));
+                }
+            }
+            Some("must-login-peer" | "mlp") => {
+                if let Some(rs) = fds.next() {
+                    if rs.to_uppercase() == "Y" {
+                        MUST_LOGIN_PEER.store(true, Ordering::SeqCst);
+                    } else {
+                        MUST_LOGIN_PEER.store(false, Ordering::SeqCst);
+                    }
+                } else {
+                    let _ = writeln!(res, "MUST_LOGIN_PEER: {:?}", MUST_LOGIN_PEER.load(Ordering::SeqCst));
                 }
             }
             _ => {}
