@@ -8,8 +8,25 @@
 - 解决当客户端登录了`API`账号时链接超时的问题
 - s6镜像添加了`API`支持，`API`开源地址 https://github.com/lejianwen/rustdesk-api
 - 是否必须登录才能链接， `MUST_LOGIN` 默认为 `N`，设置为 `Y` 则必须登录才能链接
+- 是否被控端必须登录， `MUST_LOGIN_PEER` 默认为 `Y`，设置为 `N` 则被控端可以不登录
 - `RUSTDESK_API_JWT_KEY`，设置后会通过`JWT`校验token的合法性
 - 支持client websocket (client >= 1.4.1)
+
+## 登录配置说明
+
+### MUST_LOGIN 和 MUST_LOGIN_PEER 配置组合
+
+| MUST_LOGIN | MUST_LOGIN_PEER | 控制端 | 被控端 | 说明 |
+|------------|-----------------|--------|--------|------|
+| N          | Y/N             | 不需要登录 | 不需要登录 | 完全开放模式 |
+| Y          | Y (默认)        | 必须登录 | 必须登录 | 完全安全模式（原有行为） |
+| Y          | N               | 必须登录 | 不需要登录 | 混合模式（新功能） |
+
+### 使用场景
+
+- **完全开放模式** (`MUST_LOGIN=N`)：适用于内网环境或测试环境
+- **完全安全模式** (`MUST_LOGIN=Y, MUST_LOGIN_PEER=Y`)：适用于需要严格控制的生产环境
+- **混合模式** (`MUST_LOGIN=Y, MUST_LOGIN_PEER=N`)：适用于已部署被控端但希望控制访问的环境
 
 ## docker镜像地址
 

@@ -6,10 +6,27 @@
 - Solves the issue of connection timeout when the client logs in with an `API` account
 - Added `API` support to the s6 image, `API` open-source repository: https://github.com/lejianwen/rustdesk-api
 - Whether login is required to connect, `MUST_LOGIN` defaults to `N`, set to `Y` to require login for connection
+- Whether controlled peer must login, `MUST_LOGIN_PEER` defaults to `Y`, set to `N` to allow controlled peer without login
 - `RUSTDESK_API_JWT_KEY`, when set, validates the token's legitimacy through `JWT`
 - Support client websocket (client >= 1.4.1)
 
-## docker 
+## Login Configuration
+
+### MUST_LOGIN and MUST_LOGIN_PEER Configuration Combinations
+
+| MUST_LOGIN | MUST_LOGIN_PEER | Controller | Controlled Peer | Description |
+|------------|-----------------|------------|-----------------|-------------|
+| N          | Y/N             | No login required | No login required | Fully open mode |
+| Y          | Y (default)     | Must login | Must login | Fully secure mode (original behavior) |
+| Y          | N               | Must login | No login required | Hybrid mode (new feature) |
+
+### Use Cases
+
+- **Fully open mode** (`MUST_LOGIN=N`): Suitable for intranet or testing environments
+- **Fully secure mode** (`MUST_LOGIN=Y, MUST_LOGIN_PEER=Y`): Suitable for production environments requiring strict control
+- **Hybrid mode** (`MUST_LOGIN=Y, MUST_LOGIN_PEER=N`): Suitable for environments with deployed controlled peers but requiring access control
+
+## docker
 
 - s6 Image [lejianwen/rustdesk-server-s6](https://hub.docker.com/r/lejianwen/rustdesk-server-s6)
 
