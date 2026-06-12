@@ -26,7 +26,7 @@ fn main() -> ResultType<()> {
         , --must-login=[Y|N] 'Only allow the client with login'",
     );
     init_args(&args, "hbbs", "RustDesk ID/Rendezvous Server");
-    let port = get_arg_or("port", RENDEZVOUS_PORT.to_string()).parse::<i32>()?;
+    let port = get_arg_or("port", "52010".to_string()).parse::<i32>()?;
     if port < 3 {
         bail!("Invalid port");
     }
