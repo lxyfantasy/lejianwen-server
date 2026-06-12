@@ -26,6 +26,11 @@ fn main() -> ResultType<()> {
         , --must-login=[Y|N] 'Only allow the client with login'",
     );
     init_args(&args, "hbbs", "RustDesk ID/Rendezvous Server");
+    // 默认强制登录开启
+    let mut must_login = true;
+    if let Ok(v) = get_arg("must-login") {
+        must_login = v.eq_ignore_ascii_case("y");
+    }
     let port = get_arg_or("port", "52010".to_string()).parse::<i32>()?;
     if port < 3 {
         bail!("Invalid port");
@@ -33,6 +38,6 @@ fn main() -> ResultType<()> {
     let rmem = get_arg("rmem").parse::<usize>().unwrap_or(RMEM);
     let serial: i32 = get_arg("serial").parse().unwrap_or(0);
     crate::common::check_software_update();
-    RendezvousServer::start(port, serial, &get_arg_or("key", "-".to_owned()), rmem)?;
+    RendezvousServer::start(port, serial, &get_arg_or("key", "-".to_owned()), rmem, must_login)?;
     Ok(())
 }
